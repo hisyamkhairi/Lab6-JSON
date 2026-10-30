@@ -1,0 +1,184 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Lab 06 - Display Book Records</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 700px;
+            margin: 40px auto;
+            padding: 20px;
+            line-height: 1.6;
+            background-color: #f4f6f9;
+        }
+
+        h1 {
+            color: #243b64;
+        }
+
+        select {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0 20px;
+            font-size: 16px;
+        }
+
+        #bookDetails {
+            background-color: white;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+
+        .error {
+            color: #b00020;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Book Records</h1>
+
+    <label for="bookSelect">Select a book title:</label>
+
+    <select id="bookSelect" disabled>
+        <option value="">Loading books...</option>
+    </select>
+
+    <div id="bookDetails" aria-live="polite">
+        <p>Loading book data...</p>
+    </div>
+
+    <script>
+
+        // GitHub raw JSON URL
+        const jsonURL =
+            "https://raw.githubusercontent.com/hisyamkhairi/Lab6-JSON/refs/heads/main/books.json";
+
+        const bookSelect = document.getElementById("bookSelect");
+        const bookDetails = document.getElementById("bookDetails");
+
+        let books = [];
+
+        // Retrieve JSON data from GitHub
+        async function loadBooks() {
+
+            try {
+
+                const response = await fetch(jsonURL);
+
+                if (!response.ok) {
+                    throw new Error("Unable to retrieve the JSON file.");
+                }
+
+                const data = await response.json();
+
+                books = data.Books;
+
+                // Add book title to dropdown list
+                books.forEach(function(book) {
+
+                    const option = document.createElement("option");
+
+                    option.value = book.title;
+                    option.textContent = book.title;
+
+                    bookSelect.appendChild(option);
+
+                });
+
+                bookSelect.disabled = false;
+
+                // Display the first book when the page loads
+                if (books.length > 0) {
+
+                    bookSelect.value = books[0].title;
+
+                    displayBook();
+
+                } else {
+
+                    bookDetails.textContent = "No books were found.";
+
+                }
+
+            } catch (error) {
+
+                bookDetails.textContent =
+                    "Error loading books. Check the GitHub URL and internet connection.";
+
+                bookDetails.className = "error";
+
+                bookSelect.innerHTML =
+                    '<option value="">Books unavailable</option>';
+
+                console.error(error);
+
+            }
+
+        }
+
+        // Find and display selected book
+        function displayBook() {
+
+            const selectedTitle = bookSelect.value;
+
+            const book = books.find(function(item) {
+
+                return item.title === selectedTitle;
+
+            });
+
+            if (!book) {
+
+                bookDetails.textContent = "Please select a book.";
+
+                return;
+
+            }
+
+            bookDetails.innerHTML = "";
+
+            const heading = document.createElement("h2");
+
+            heading.textContent = book.title;
+
+            const author = document.createElement("p");
+
+            author.textContent = "Author: " + book.author;
+
+            const year = document.createElement("p");
+
+            year.textContent =
+                "Publication Year: " + book.publicationYear;
+
+            const genres = document.createElement("p");
+
+            genres.textContent =
+                "Genres: " + book.genres.join(", ");
+
+            bookDetails.append(
+                heading,
+                author,
+                year,
+                genres
+            );
+
+        }
+
+        // Update book information when user change selection
+        bookSelect.addEventListener("change", displayBook);
+
+        // Retrieve JSON data
+        loadBooks();
+
+    </script>
+
+</body>
+</html>
